@@ -1,5 +1,18 @@
 # Definition de la boucle d'apprentissage
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from models.model import CNN
+import evaluate
+
+
 import torch
+import torch.nn as nn
+# from ..models.model import CNN
+# from . import evaluate
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
 
 
 def train(model, train_loader, optimizer, criterion, epoch):
@@ -20,27 +33,29 @@ def train(model, train_loader, optimizer, criterion, epoch):
     print(f"Accuracy: {acc_train:.2f}")
     return current_loss, acc_train
 
-# Definition de la boucle de test
-def test(model, test_loader, criterion):
-    model.eval()
-    test_loss = []
-    correct = 0
-    with torch.no_grad():
-        for data, target in test_loader:
-            output = model(data)
-            cur_loss = criterion(output, target)
-            test_loss.append(cur_loss.item())
-            pred = output.argmax(dim=1, keepdim=True)
-            correct += pred.eq(target.view_as(pred)).sum().item()
-    
-    test_loss = sum(test_loss)/len(test_loader)
-    acc_loss = correct/len(test_loader.dataset)
-    print(f"Test set: Average loss: {test_loss:.2f}, Accuracy: {acc_loss:.2f}")
-    return test_loss, acc_loss
 
 model = CNN()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 criterion = nn.CrossEntropyLoss()
+
+
+# Chargement des données
+train_data = datasets.MNIST(
+    root = '../data',
+    train = True,                         
+    transform = transforms.ToTensor(), 
+    download = True,            
+)
+
+test_data = datasets.MNIST(
+    root = '../data', 
+    train = False, 
+    transform = transforms.ToTensor()
+)
+
+print(len(train_data), len(test_data))
+train_loader = DataLoader(train_data, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
 
 # Apprentissage
 train_acc, test_acc = [], []
@@ -48,7 +63,7 @@ train_loss, test_loss = [], []
 
 for epoch in range(1, 11):
     train_loss_cur, train_acc_cur = train(model, train_loader, optimizer, criterion, epoch)
-    test_loss_cur, test_acc_cur = test(model, test_loader, criterion)
+    test_loss_cur, test_acc_cur = evaluate.test(model, test_loader, criterion)
     train_acc.append(train_acc_cur)
     test_acc.append(test_acc_cur)
     train_loss.append(train_loss_cur)
