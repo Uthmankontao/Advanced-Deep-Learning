@@ -1,2 +1,5 @@
 .venv_deep_learning/
-__pycache__/
+__pycache__
+.csv*
+data/
+wandb/
