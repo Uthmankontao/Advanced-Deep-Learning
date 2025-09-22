@@ -13,7 +13,9 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-
+# usage of wandb to track the training
+import wandb
+wandb.init()
 
 def train(model, train_loader, optimizer, criterion, epoch):
     model.train()
@@ -64,6 +66,7 @@ train_loss, test_loss = [], []
 for epoch in range(1, 11):
     train_loss_cur, train_acc_cur = train(model, train_loader, optimizer, criterion, epoch)
     test_loss_cur, test_acc_cur = evaluate.test(model, test_loader, criterion)
+    wandb.log({"train_loss": train_loss_cur, "train_acc": train_acc_cur, "test_loss": test_loss_cur, "test_acc": test_acc_cur})
     train_acc.append(train_acc_cur)
     test_acc.append(test_acc_cur)
     train_loss.append(train_loss_cur)
